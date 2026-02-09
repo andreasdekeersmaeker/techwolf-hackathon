@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lens — AI Healthcare Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface-2: #1a1a1a;
+      --border: rgba(169, 88, 255, 0.15);
+      --border-hover: rgba(169, 88, 255, 0.35);
+      --primary: #A958FF;
+      --secondary: #00FFC0;
+      --text: #F9F9F9;
+      --text-2: #7B7B7B;
+      --text-3: #4a4a4a;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-pill: 50px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Tool Input Section ──────────────────────────────────── */
+    .tool-section {
+      border-bottom: 1px solid var(--border);
+      transition: max-height 0.4s ease;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .tool-section.collapsed { max-height: 56px; }
+    .tool-section.expanded { max-height: 500px; }
+
+    .tool-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .tool-header h2 {
+      font-size: 15px; font-weight: 600; letter-spacing: 0.5px;
+      text-transform: uppercase; color: var(--text-2);
+    }
+    .tool-header .toggle {
+      color: var(--text-2); font-size: 18px; transition: transform 0.3s;
+    }
+    .tool-section.expanded .toggle { transform: rotate(180deg); }
+
+    .tool-body { padding: 0 32px 20px; }
+
+    .tool-cards {
+      display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 16px;
+    }
+    .tool-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      min-width: 220px;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .tool-card .tool-name {
+      font-weight: 600; font-size: 14px; margin-bottom: 6px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .tool-card .tool-icon {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .tool-card .tool-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+    .tool-tag {
+      font-size: 10px; padding: 2px 8px; border-radius: 50px;
+      font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .tool-tag.vitals { background: rgba(169,88,255,0.15); color: #c68dff; }
+    .tool-tag.labs { background: rgba(0,255,192,0.12); color: #00FFC0; }
+    .tool-tag.demographics { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .tool-tag.clinical_notes { background: rgba(251,191,36,0.12); color: #fbbf24; }
+    .tool-tag.medications { background: rgba(239,68,68,0.12); color: #f87171; }
+    .tool-tag.encounters { background: rgba(251,191,36,0.12); color: #fbbf24; }
+    .tool-tag.problem_list { background: rgba(239,68,68,0.12); color: #f87171; }
+
+    .tool-card .remove-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: none; border: none; color: var(--text-3);
+      cursor: pointer; font-size: 14px; padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .tool-card .remove-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+    .tool-actions {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    }
+
+    .add-tool-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      background-image: linear-gradient(var(--surface), var(--surface)), linear-gradient(135deg, var(--secondary), var(--primary));
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
+      color: var(--text);
+      padding: 8px 20px;
+      border-radius: var(--radius-pill);
+      font-size: 13px; font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .add-tool-btn:hover { opacity: 0.85; }
+
+    .tool-status {
+      font-size: 13px; color: var(--text-2); margin-top: 12px;
+    }
+    .tool-status .count { color: var(--secondary); font-weight: 600; }
+
+    /* ── Preset chips ────────────────────────────────────────── */
+    .preset-divider {
+      color: var(--text-3); font-size: 13px; padding: 0 6px;
+    }
+    .preset-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border-radius: var(--radius-pill);
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text-2); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .preset-chip:hover {
+      border-color: var(--border-hover); color: var(--text);
+      background: rgba(169, 88, 255, 0.08);
+    }
+    .preset-chip .chip-icon { font-size: 16px; }
+
+    /* ── Modal ───────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 520px; max-width: 90vw;
+      padding: 28px;
+      transform: translateY(12px); transition: transform 0.2s;
+    }
+    .modal-overlay.active .modal { transform: translateY(0); }
+
+    .modal h3 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .modal p { font-size: 13px; color: var(--text-2); margin-bottom: 16px; }
+
+    .modal textarea {
+      width: 100%; min-height: 100px; padding: 12px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text);
+      font-family: inherit; font-size: 14px; resize: vertical;
+      outline: none;
+    }
+    .modal textarea:focus { border-color: var(--primary); }
+    .modal textarea::placeholder { color: var(--text-3); }
+
+    .modal-actions {
+      display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px;
+    }
+    .btn-cancel {
+      padding: 8px 20px; border-radius: var(--radius-pill);
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text-2); font-size: 13px; cursor: pointer;
+    }
+    .btn-analyze {
+      padding: 8px 24px; border-radius: var(--radius-pill);
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      border: none; color: #0a0a0a; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn-analyze:hover { opacity: 0.9; }
+    .btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(0,0,0,0.2); border-top-color: #0a0a0a;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Main Area ───────────────────────────────────────────── */
+    .main-area {
+      flex: 1; display: flex; overflow: hidden;
+    }
+
+    /* ── Chat Panel ──────────────────────────────────────────── */
+    .chat-panel {
+      width: 50%; min-width: 420px; max-width: 700px;
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .chat-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .chat-header .logo {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 18px; color: #0a0a0a;
+    }
+    .chat-header .title { font-size: 18px; font-weight: 600; }
+    .chat-header .subtitle { font-size: 12px; color: var(--text-2); }
+
+    .messages {
+      flex: 1; overflow-y: auto; padding: 20px 24px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .messages::-webkit-scrollbar { width: 4px; }
+    .messages::-webkit-scrollbar-thumb { background: var(--text-3); border-radius: 2px; }
+
+    .msg { max-width: 88%; animation: fadeIn 0.2s ease; }
+    .msg.user { align-self: flex-end; }
+    .msg.assistant { align-self: flex-start; }
+
+    .msg .bubble {
+      padding: 12px 16px; border-radius: var(--radius);
+      font-size: 14px; line-height: 1.65;
+    }
+    .msg.user .bubble {
+      background: var(--primary); color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .msg.assistant .bubble {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--secondary);
+      border-bottom-left-radius: 4px;
+    }
+    .msg.assistant .bubble strong { color: var(--secondary); }
+    .msg.assistant .bubble em { color: var(--text-2); font-style: italic; }
+
+    .typing-indicator {
+      display: flex; gap: 4px; padding: 12px 14px;
+      align-self: flex-start;
+    }
+    .typing-indicator span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--secondary);
+      animation: bounce 1.2s infinite;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* ── Generate button (appears after plan approval) ───────── */
+    .generate-bar {
+      padding: 14px 24px;
+      border-top: 1px solid var(--border);
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .generate-bar.visible { display: block; }
+    .generate-btn {
+      width: 100%; padding: 14px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      border: none; color: #0a0a0a; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: opacity 0.2s;
+      letter-spacing: 0.3px;
+    }
+    .generate-btn:hover { opacity: 0.9; }
+    .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .chat-input-area {
+      padding: 14px 24px 18px;
+      border-top: 1px solid var(--border);
+    }
+    .chat-input-wrap {
+      display: flex; gap: 10px;
+    }
+    .chat-input {
+      flex: 1; padding: 12px 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text);
+      font-family: inherit; font-size: 14px;
+      outline: none; resize: none;
+    }
+    .chat-input:focus { border-color: var(--primary); }
+    .chat-input::placeholder { color: var(--text-3); }
+
+    .send-btn {
+      width: 44px; height: 44px; border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.2s; flex-shrink: 0;
+    }
+    .send-btn:hover { opacity: 0.85; }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .send-btn svg { width: 20px; height: 20px; }
+
+    /* ── Preview Panel ───────────────────────────────────────── */
+    .preview-panel {
+      flex: 1; display: flex; flex-direction: column;
+      position: relative;
+    }
+    .preview-header {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px; color: var(--text-2);
+    }
+    .preview-header .url {
+      background: var(--surface); padding: 4px 12px;
+      border-radius: 6px; border: 1px solid var(--border);
+      font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px;
+    }
+    .preview-iframe-wrap {
+      flex: 1; position: relative;
+      border: 1px solid rgba(169, 88, 255, 0.08);
+      margin: 8px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(169, 88, 255, 0.05);
+    }
+    .preview-iframe-wrap iframe {
+      width: 100%; height: 100%; border: none;
+      background: #0F172A;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    .footer {
+      padding: 8px 24px;
+      border-top: 1px solid var(--border);
+      font-size: 11px; color: var(--text-3);
+      text-align: center; flex-shrink: 0;
+    }
+    .footer span { color: var(--primary); }
+
+    /* ── Success toast ───────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--surface); border: 1px solid rgba(0,255,192,0.3);
+      border-radius: var(--radius); padding: 12px 20px;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--secondary);
+      transform: translateY(60px); opacity: 0;
+      transition: all 0.3s ease; z-index: 200;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- Tool Input Section -->
+  <div class="tool-section expanded" id="toolSection">
+    <div class="tool-header" onclick="toggleToolSection()">
+      <h2>Configure Your Tools</h2>
+      <span class="toggle">&#x25BC;</span>
+    </div>
+    <div class="tool-body">
+      <div class="tool-cards" id="toolCards"></div>
+      <div class="tool-actions">
+        <button class="preset-chip" onclick="addPreset('ehr')">
+          <span class="chip-icon">&#x1F3E5;</span> Patient Records (EHR)
+        </button>
+        <button class="preset-chip" onclick="addPreset('heart')">
+          <span class="chip-icon">&#x1F493;</span> Heart Monitor
+        </button>
+        <button class="preset-chip" onclick="addPreset('labs')">
+          <span class="chip-icon">&#x1F9EA;</span> Lab System
+        </button>
+        <button class="preset-chip" onclick="addPreset('pharmacy')">
+          <span class="chip-icon">&#x1F48A;</span> Pharmacy System
+        </button>
+        <button class="preset-chip" onclick="addPreset('notes')">
+          <span class="chip-icon">&#x1F4CB;</span> Clinical Notes
+        </button>
+        <span class="preset-divider">or</span>
+        <button class="add-tool-btn" onclick="openToolModal()">+ Custom Tool</button>
+      </div>
+      <div class="tool-status" id="toolStatus"></div>
+    </div>
+  </div>
+
+  <!-- Main Area: Chat + Preview -->
+  <div class="main-area">
+    <!-- Chat Panel -->
+    <div class="chat-panel">
+      <div class="chat-header">
+        <div class="logo">L</div>
+        <div>
+          <div class="title">Lens</div>
+          <div class="subtitle">AI Healthcare Platform</div>
+        </div>
+      </div>
+      <div class="messages" id="messages">
+        <div class="msg assistant">
+          <div class="bubble">
+            Hi! I'm <strong>Lens</strong>. Add your tools above, then tell me what kind of dashboard you need.<br><br>
+            I'll create a plan for you to review before building anything. For example:<br>
+            <em>"I need a heart failure monitoring dashboard for my patient"</em>
+          </div>
+        </div>
+      </div>
+      <div class="generate-bar" id="generateBar">
+        <button class="generate-btn" id="generateBtn" onclick="generateWebsite()">
+          &#x2728; Approve &amp; Generate Website
+        </button>
+      </div>
+      <div class="chat-input-area">
+        <div class="chat-input-wrap">
+          <textarea class="chat-input" id="chatInput" rows="2"
+            placeholder="Describe what you need, or adjust the plan..."
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview Panel -->
+    <div class="preview-panel">
+      <div class="preview-header">
+        <span>Preview</span>
+        <span class="url">/site/</span>
+      </div>
+      <div class="preview-iframe-wrap">
+        <iframe id="previewFrame" src="/site/"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Powered by <span>TechWolf</span> &middot; Lens v0.1
+  </div>
+
+  <!-- Tool Modal -->
+  <div class="modal-overlay" id="toolModal">
+    <div class="modal">
+      <h3>Add a Custom Tool</h3>
+      <p>Describe a healthcare tool or product your organization uses. Lens will analyze what data it provides.</p>
+      <textarea id="toolDescription" placeholder="e.g., We use Epic for our EHR system. It contains patient demographics, encounter history, clinical notes, and problem lists."></textarea>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeToolModal()">Cancel</button>
+        <button class="btn-analyze" id="analyzeBtn" onclick="analyzeTool()">Analyze</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span id="toastMsg"></span>
+  </div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────
+  const tools = [];
+  let patientId = null;
+  let chatHistory = [];
+  let isBusy = false;
+
+  const ICON_MAP = {
+    hospital: '\u{1F3E5}', flask: '\u{1F9EA}', heartbeat: '\u{1F493}', pill: '\u{1F48A}',
+    clipboard: '\u{1F4CB}', monitor: '\u{1F5A5}\uFE0F', stethoscope: '\u{1FA7A}',
+    microscope: '\u{1F52C}', chart: '\u{1F4CA}'
+  };
+
+  // ── Preset tool definitions (no AI call needed) ────────────
+  const PRESETS = {
+    ehr: {
+      name: "Patient Records (EHR)",
+      icon: "hospital",
+      data_categories: ["demographics", "clinical_notes", "medications"],
+      mapped_endpoints: [
+        { category: "demographics", endpoint: "/api/patient/{id}", description: "Patient demographics and summary" },
+        { category: "clinical_notes", endpoint: "/api/patient/{id}/notes", description: "Clinical encounter notes" },
+        { category: "medications", endpoint: "/api/patient/{id}/medications", description: "Medication history" }
+      ],
+      summary: "Electronic health records with patient demographics, clinical notes, and medication history."
+    },
+    heart: {
+      name: "Heart Monitor",
+      icon: "heartbeat",
+      data_categories: ["vitals"],
+      mapped_endpoints: [
+        { category: "vitals", endpoint: "/api/patient/{id}/vitals", description: "Heart rate, blood pressure, O2 saturation" }
+      ],
+      summary: "Continuous cardiac monitoring providing heart rate, blood pressure, and oxygen saturation."
+    },
+    labs: {
+      name: "Lab System",
+      icon: "flask",
+      data_categories: ["labs"],
+      mapped_endpoints: [
+        { category: "labs", endpoint: "/api/patient/{id}/labs", description: "Lab results including blood work and biomarkers" }
+      ],
+      summary: "Laboratory information system with blood work, biomarkers, and diagnostic test results."
+    },
+    pharmacy: {
+      name: "Pharmacy System",
+      icon: "pill",
+      data_categories: ["medications"],
+      mapped_endpoints: [
+        { category: "medications", endpoint: "/api/patient/{id}/medications", description: "Prescriptions and medication logs" }
+      ],
+      summary: "Pharmacy management system tracking prescriptions, dispensing, and medication adherence."
+    },
+    notes: {
+      name: "Clinical Notes",
+      icon: "clipboard",
+      data_categories: ["clinical_notes"],
+      mapped_endpoints: [
+        { category: "clinical_notes", endpoint: "/api/patient/{id}/notes", description: "Progress notes, discharge summaries, reports" }
+      ],
+      summary: "Clinical documentation system with progress notes, discharge summaries, and procedure reports."
+    }
+  };
+
+  // ── Init ───────────────────────────────────────────────────
+  async function init() {
+    const res = await fetch('/api/patients');
+    const patients = await res.json();
+    if (patients.length > 0) {
+      patientId = patients[0].id;
+      console.log('Using patient:', patients[0].name, patientId);
+    }
+  }
+  init();
+
+  // ── Tool Section ───────────────────────────────────────────
+  function toggleToolSection() {
+    const section = document.getElementById('toolSection');
+    section.classList.toggle('collapsed');
+    section.classList.toggle('expanded');
+  }
+
+  function addPreset(key) {
+    const preset = PRESETS[key];
+    if (!preset) return;
+    // Don't add duplicates
+    if (tools.some(t => t.name === preset.name)) {
+      showToast(`${preset.name} already added`);
+      return;
+    }
+    tools.push({ ...preset });
+    renderToolCards();
+    showToast(`${preset.name} added`);
+  }
+
+  function openToolModal() {
+    document.getElementById('toolModal').classList.add('active');
+    document.getElementById('toolDescription').value = '';
+    document.getElementById('toolDescription').focus();
+  }
+
+  function closeToolModal() {
+    document.getElementById('toolModal').classList.remove('active');
+  }
+
+  async function analyzeTool() {
+    const desc = document.getElementById('toolDescription').value.trim();
+    if (!desc) return;
+
+    const btn = document.getElementById('analyzeBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Analyzing...';
+
+    try {
+      const res = await fetch('/api/analyze-tool', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: desc })
+      });
+      const data = await res.json();
+      tools.push(data);
+      renderToolCards();
+      closeToolModal();
+      showToast(`${data.name} configured`);
+    } catch (e) {
+      console.error(e);
+      showToast('Analysis failed');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Analyze';
+    }
+  }
+
+  function removeTool(index) {
+    tools.splice(index, 1);
+    renderToolCards();
+  }
+
+  function renderToolCards() {
+    const container = document.getElementById('toolCards');
+    container.innerHTML = tools.map((t, i) => `
+      <div class="tool-card">
+        <button class="remove-btn" onclick="removeTool(${i})">\u2715</button>
+        <div class="tool-name">
+          <div class="tool-icon">${ICON_MAP[t.icon] || '\u{1F527}'}</div>
+          ${escapeHtml(t.name)}
+        </div>
+        <div class="tool-tags">
+          ${t.data_categories.map(c => `<span class="tool-tag ${c}">${c.replace('_', ' ')}</span>`).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    const allCats = new Set(tools.flatMap(t => t.data_categories));
+    const status = document.getElementById('toolStatus');
+    if (tools.length > 0) {
+      status.innerHTML = `<span class="count">${tools.length}</span> tool${tools.length > 1 ? 's' : ''} configured \u2192 <span class="count">${allCats.size}</span> data categor${allCats.size === 1 ? 'y' : 'ies'} available`;
+    } else {
+      status.innerHTML = '';
+    }
+  }
+
+  // ── Chat ───────────────────────────────────────────────────
+  function addMessageHtml(role, html) {
+    const div = document.createElement('div');
+    div.className = `msg ${role}`;
+    div.innerHTML = `<div class="bubble">${html}</div>`;
+    document.getElementById('messages').appendChild(div);
+    scrollChat();
+    return div;
+  }
+
+  function escapeHtml(s) {
+    const div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  /** Minimal markdown: **bold**, *italic*, and lines starting with - or number. */
+  function renderMarkdown(text) {
+    return text
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function scrollChat() {
+    const m = document.getElementById('messages');
+    m.scrollTop = m.scrollHeight;
+  }
+
+  function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'typing-indicator';
+    div.id = 'typingIndicator';
+    div.innerHTML = '<span></span><span></span><span></span>';
+    document.getElementById('messages').appendChild(div);
+    scrollChat();
+  }
+
+  function hideTyping() {
+    const el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+  }
+
+  function setGenerateVisible(visible) {
+    const bar = document.getElementById('generateBar');
+    if (visible) {
+      bar.classList.add('visible');
+    } else {
+      bar.classList.remove('visible');
+    }
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text || isBusy || !patientId) return;
+
+    isBusy = true;
+    document.getElementById('sendBtn').disabled = true;
+    setGenerateVisible(false);
+    input.value = '';
+
+    addMessageHtml('user', escapeHtml(text));
+    chatHistory.push({ role: 'user', content: text });
+    showTyping();
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          patient_id: patientId,
+          message: text,
+          tools: tools,
+          history: chatHistory.slice(0, -1)
+        })
+      });
+
+      hideTyping();
+
+      // Stream the text response into a bubble
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'msg assistant';
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      msgDiv.appendChild(bubble);
+      document.getElementById('messages').appendChild(msgDiv);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullText = '';
+      let readyToGenerate = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.text) {
+                fullText += data.text;
+              }
+            } catch {}
+          }
+        }
+        // Render streamed text so far (strip the signal marker from display)
+        const display = fullText.replace('[READY_TO_GENERATE]', '').trim();
+        bubble.innerHTML = renderMarkdown(display);
+        scrollChat();
+      }
+
+      // Check if agent signaled readiness
+      if (fullText.includes('[READY_TO_GENERATE]')) {
+        readyToGenerate = true;
+      }
+
+      // Store final assistant message (without the marker)
+      const cleanText = fullText.replace('[READY_TO_GENERATE]', '').trim();
+      chatHistory.push({ role: 'assistant', content: cleanText });
+
+      // Show the generate button if the plan is ready
+      if (readyToGenerate) {
+        setGenerateVisible(true);
+      }
+
+    } catch (e) {
+      hideTyping();
+      addMessageHtml('assistant', '<em>Error: ' + escapeHtml(e.message) + '</em>');
+    } finally {
+      isBusy = false;
+      document.getElementById('sendBtn').disabled = false;
+    }
+  }
+
+  // ── Website Generation ─────────────────────────────────────
+  async function generateWebsite() {
+    if (isBusy || !patientId) return;
+
+    isBusy = true;
+    setGenerateVisible(false);
+    document.getElementById('sendBtn').disabled = true;
+    document.getElementById('generateBtn').disabled = true;
+
+    // Show progress in chat
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'msg assistant';
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.innerHTML = '<em>Generating your website...</em>';
+    msgDiv.appendChild(bubble);
+    document.getElementById('messages').appendChild(msgDiv);
+    scrollChat();
+
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          patient_id: patientId,
+          message: '',
+          tools: tools,
+          history: chatHistory
+        })
+      });
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let charCount = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.text) {
+                charCount += data.text.length;
+                bubble.innerHTML = `<em>Building website... ${Math.round(charCount / 1000)}k chars generated</em>`;
+                scrollChat();
+              }
+            } catch {}
+          }
+          if (line.startsWith('event: done')) {
+            bubble.innerHTML = '<span style="color: var(--secondary)">\u2713</span> <strong>Website ready!</strong> Check the preview \u2192';
+            chatHistory.push({ role: 'assistant', content: 'Website generated successfully.' });
+            const frame = document.getElementById('previewFrame');
+            frame.src = '/site/?t=' + Date.now();
+            showToast('Website generated');
+          }
+        }
+      }
+    } catch (e) {
+      bubble.innerHTML = '<em>Generation failed: ' + escapeHtml(e.message) + '</em>';
+    } finally {
+      isBusy = false;
+      document.getElementById('sendBtn').disabled = false;
+      document.getElementById('generateBtn').disabled = false;
+    }
+  }
+
+  // ── Toast ──────────────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
+
+</body>
+</html>

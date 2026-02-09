@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Heart Failure Monitoring Dashboard for comprehensive cardiac patient tracking including vitals, weight trends, cardiovascular labs, kidney function, medication adherence, and clinical notes.">
+    <meta name="required-skills" content="Heart failure management, ECG interpretation, fluid balance assessment, medication reconciliation, lab value interpretation, vital signs monitoring, clinical documentation review">
+    <title>Heart Failure Monitoring Dashboard - Debby656 Conroy74</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .alert-critical {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-slate-800 border-b border-slate-700 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-blue-400">Heart Failure Monitoring Dashboard</h1>
+                    <p class="text-sm text-gray-400 mt-1">Real-time cardiac care management</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-semibold" id="patientName">Loading...</p>
+                    <p class="text-sm text-gray-400" id="patientInfo">Loading patient information...</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        <!-- Alert Banner -->
+        <div id="alertBanner" class="hidden mb-6 bg-red-900/50 border border-red-500 rounded-xl p-4">
+            <div class="flex items-start">
+                <svg class="w-6 h-6 text-red-400 mr-3 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-red-400 mb-2">Critical Alerts</h3>
+                    <ul id="alertList" class="space-y-1 text-sm"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 1: Vital Signs Overview -->
+        <!-- Section: Vital Signs Overview - Real-time monitoring of cardiac and respiratory parameters - Skills: Vital signs interpretation, hemodynamic monitoring, early warning sign recognition -->
+        <section data-purpose="vital-signs-monitoring" class="mb-8">
+            <h2 class="text-xl font-bold text-blue-400 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+                Vital Signs Overview
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                <div class="bg-slate-800 rounded-xl p-5 shadow-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-gray-400">Heart Rate</span>
+                        <span id="hrStatus" class="text-xs px-2 py-1 rounded-full"></span>
+                    </div>
+                    <p id="heartRate" class="text-3xl font-bold text-blue-400">--</p>
+                    <p class="text-xs text-gray-500 mt-1">bpm</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-5 shadow-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-gray-400">Blood Pressure</span>
+                        <span id="bpStatus" class="text-xs px-2 py-1 rounded-full"></span>
+                    </div>
+                    <p id="bloodPressure" class="text-3xl font-bold text-blue-400">--/--</p>
+                    <p class="text-xs text-gray-500 mt-1">mmHg</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-5 shadow-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-gray-400">Resp. Rate</span>
+                        <span id="rrStatus" class="text-xs px-2 py-1 rounded-full"></span>
+                    </div>
+                    <p id="respRate" class="text-3xl font-bold text-blue-400">--</p>
+                    <p class="text-xs text-gray-500 mt-1">breaths/min</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-5 shadow-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-gray-400">O2 Saturation</span>
+                        <span id="o2Status" class="text-xs px-2 py-1 rounded-full"></span>
+                    </div>
+                    <p id="o2Sat" class="text-3xl font-bold text-blue-400">--</p>
+                    <p class="text-xs text-gray-500 mt-1">%</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-5 shadow-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-gray-400">Temperature</span>
+                        <span id="tempStatus" class="text-xs px-2 py-1 rounded-full"></span>
+                    </div>
+                    <p id="temperature" class="text-3xl font-bold text-blue-400">--</p>
+                    <p class="text-xs text-gray-500 mt-1">°F</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-5 shadow-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-gray-400">Current Weight</span>
+                        <span id="weightStatus" class="text-xs px-2 py-1 rounded-full"></span>
+                    </div>
+                    <p id="currentWeight" class="text-3xl font-bold text-blue-400">--</p>
+                    <p class="text-xs text-gray-500 mt-1">kg</p>
+                </div>
+            </div>
+            <div class="mt-6 bg-slate-800 rounded-xl p-6 shadow-lg">
+                <h3 class="text-lg font-semibold mb-4 text-gray-200">Vital Signs Trends (Last 30 Days)</h3>
+                <canvas id="vitalsChart" height="80"></canvas>
+            </div>
+        </section>
+
+        <!-- Section 2: Weight Trend Tracker -->
+        <!-- Section: Weight Trend Tracker - Fluid retention monitoring for heart failure exacerbation detection - Skills: Fluid balance assessment, weight trend analysis, early decompensation recognition -->
+        <section data-purpose="weight-trend-monitoring" class="mb-8">
+            <h2 class="text-xl font-bold text-blue-400 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
+                </svg>
+                Weight Trend Tracker
+            </h2>
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-slate-800 rounded-xl p-5 shadow-lg">
+                    <span class="text-sm text-gray-400">24-Hour Change</span>
+                    <p id="weight24h" class="text-2xl font-bold mt-2">--</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-5 shadow-lg">
+                    <span class="text-sm text-gray-400">7-Day Change</span>
+                    <p id="weight7d" class="text-2xl font-bold mt-2">--</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-5 shadow-lg">
+                    <span class="text-sm text-gray-400">30-Day Change</span>
+                    <p id="weight30d" class="text-2xl font-bold mt-2">--</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-5 shadow-lg">
+                    <span class="text-sm text-gray-400">Average Weight</span>
+                    <p id="weightAvg" class="text-2xl font-bold mt-2 text-blue-400">--</p>
+                </div>
+            </div>
+            <div class="bg-slate-800 rounded-xl p-6 shadow-lg">
+                <h3 class="text-lg font-semibold mb-4 text-gray-200">Weight History (Last 90 Days)</h3>
+                <canvas id="weightChart" height="80"></canvas>
+            </div>
+        </section>
+
+        <!-- Section 3: Cardiovascular Labs Panel -->
+        <!-- Section: Cardiovascular Labs Panel - Cardiac biomarkers and electrolytes for heart failure management - Skills: Lab interpretation, cardiac biomarker analysis, electrolyte management -->
+        <section data-purpose="cardiovascular-labs" class="mb-8">
+            <h2 class="text-xl font-bold text-blue-400 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                </svg>
+                Cardiovascular Labs Panel
+            </h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-slate-800 rounded-xl p-6 shadow-lg">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-200">Cardiac Markers</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Troponin</span>
+                            <div class="text-right">
+                                <span id="troponin" class="font-semibold">--</span>
+                                <span class="text-xs text-gray-500 ml-2">ng/mL</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Ejection Fraction</span>
+                            <div class="text-right">
+                                <span id="ejectionFraction" class="font-semibold">--</span>
+                                <span class="text-xs text-gray-500 ml-2">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-6 shadow-lg">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-200">Electrolytes</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Sodium</span>
+                            <div class="text-right">
+                                <span id="sodium" class="font-semibold">--</span>
+                                <span class="text-xs text-gray-500 ml-2">mEq/L</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Potassium</span>
+                            <div class="text-right">
+                                <span id="potassium" class="font-semibold">--</span>
+                                <span class="text-xs text-gray-500 ml-2">mEq/L</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 bg-slate-800 rounded-xl p-6 shadow-lg">
+                <h3 class="text-lg font-semibold mb-4 text-gray-200">Lab Trends (Last 6 Months)</h3>
+                <canvas id="labsChart" height="80"></canvas>
+            </div>
+        </section>
+
+        <!-- Section 4: Kidney Function Monitor -->
+        <!-- Section: Kidney Function Monitor - Renal status tracking for cardiorenal syndrome management - Skills: Renal function assessment, GFR interpretation, medication adjustment based on kidney function -->
+        <section data-purpose="kidney-function-monitoring" class="mb-8">
+            <h2 class="text-xl font-bold text-blue-400 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Kidney Function Monitor
+            </h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                <div class="bg-slate-800 rounded-xl p-5 shadow-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-gray-400">Creatinine</span>
+                        <span id="creatStatus" class="text-xs px-2 py-1 rounded-full"></span>
+                    </div>
+                    <p id="creatinine" class="text-2xl font-bold text-blue-400">--</p>
+                    <p class="text-xs text-gray-500 mt-1">mg/dL</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-5 shadow-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-gray-400">BUN</span>
+                        <span id="bunStatus" class="text-xs px-2 py-1 rounded-full"></span>
+                    </div>
+                    <p id="bun" class="text-2xl font-bold text-blue-400">--</p>
+                    <p class="text-xs text-gray-500 mt-1">mg/dL</p>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-5 shadow-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-gray-400">GFR</span>
+                        <span id="gfrStatus" class="text-xs px-2 py-1 rounded-full"></span>
+                    </div>
+                    <p id="gfr" class="text-2xl font-bold text-blue-400">--</p>
+                    <p class="text-xs text-gray-500 mt-1">mL/min/1.73m²</p>
+                </div>
+            </div>
+            <div class="bg-slate-800 rounded-xl p-6 shadow-lg">
+                <h3 class="text-lg font-semibold mb-4 text-gray-200">Kidney Function Trends (Last 6 Months)</h3>
+                <canvas id="kidneyChart" height="80"></canvas>
+            </div>
+        </section>
+
+        <!-- Section 5: Medication Adherence -->
+        <!-- Section: Medication Adherence - Heart failure medication regimen tracking - Skills: Medication reconciliation, HF pharmacotherapy, guideline-directed medical therapy assessment -->
+        <section data-purpose="medication-management" class="mb-8">
+            <h2 class="text-xl font-bold text-blue-400 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                Medication Adherence
+            </h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-slate-800 rounded-xl p-6 shadow-lg">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-200">Current Heart Failure Medications</h3>
+                    <div id="currentMedications" class="space-y-3">
+                        <p class="text-gray-400 text-sm">Loading medications...</p>
+                    </div>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-6 shadow-lg">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-200">Medication Gaps & Recommendations</h3>
+                    <div id="medicationGaps" class="space-y-3">
+                        <p class="text-gray-400 text-sm">Analyzing medication regimen...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: Recent Clinical Notes Summary -->
+        <!-- Section: Recent Clinical Notes Summary - Clinical documentation review for symptom tracking - Skills: Clinical documentation review, symptom assessment, encounter analysis -->
+        <section data-purpose="clinical-notes-review" class="mb-8">
+            <h2 class="text-xl font-bold text-blue-400 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Recent Clinical Notes Summary
+            </h2>
+            <div class="bg-slate-800 rounded-xl shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-700">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Encounter Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Key Findings</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">HF Symptoms</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clinicalNotesTable" class="divide-y divide-slate-700">
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-center text-gray-400 text-sm">Loading clinical notes...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 border-t border-slate-700 mt-12">
+        <div class="container mx-auto px-6 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
+                <p>Generated by <span class="text-blue-400 font-semibold">Lens</span> · AI Healthcare Platform · Powered by <span class="text-blue-400 font-semibold">TechWolf</span></p>
+                <p class="mt-2 md:mt-0">Last Updated: <span id="lastUpdated"></span></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Global data storage
+        let patientData = null;
+        let vitalsData = [];
+        let labsData = [];
+        let notesData = [];
+        let medicationsData = [];
+        let weightsData = [];
+        let alerts = [];
+
+        // Utility functions
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getStatusBadge(value, normalRange, inverse = false) {
+            if (value === null || value === undefined || value === '--') return '';
+            
+            const isNormal = inverse ? 
+                (value <= normalRange.max && value >= normalRange.min) :
+                (value >= normalRange.min && value <= normalRange.max);
+            
+            if (isNormal) {
+                return '<span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded-full">Normal</span>';
+            } else {
+                return '<span class="bg-red-900/50 text-red-400 text-xs px-2 py-1 rounded-full">Abnormal</span>';
+            }
+        }
+
+        function addAlert(message, critical = false) {
+            alerts.push({ message, critical });
+        }
+
+        function displayAlerts() {
+            const alertBanner = document.getElementById('alertBanner');
+            const alertList = document.getElementById('alertList');
+            
+            if (alerts.length === 0) {
+                alertBanner.classList.add('hidden');
+                return;
+            }
+            
+            alertBanner.classList.remove('hidden');
+            if (alerts.some(a => a.critical)) {
+                alertBanner.classList.add('alert-critical');
+            }
+            
+            alertList.innerHTML = alerts.map(alert => 
+                `<li class="flex items-start">
+                    <svg class="w-4 h-4 mr-2 flex-shrink-0 mt-0.5 ${alert.critical ? 'text-red-400' : 'text-amber-400'}" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="${alert.critical ? 'text-red-300' : 'text-amber-300'}">${alert.message}</span>
+                </li>`
+            ).join('');
+        }
+
+        // Fetch and process data
+        async function loadDashboard() {
+            const patientId = 'b50d5753-604a-120e-932c-ff8dd8a0cc10';
+            
+            try {
+                // Fetch all data
+                patientData = await fetch(`/api/patient/${patientId}`).then(r => r.json());
+                vitalsData = await fetch(`/api/patient/${patientId}/vitals`).then(r => r.json());
+                labsData = await fetch(`/api/patient/${patientId}/labs`).then(r => r.json());
+                notesData = await fetch(`/api/patient/${patientId}/notes`).then(r => r.json());
+                medicationsData = await fetch(`/api/patient/${patientId}/medications`).then(r => r.json());
+                weightsData = await fetch(`/api/patient/${patientId}/weights`).then(r => r.json());
+
+                // Update header
+                updateHeader();
+                
+                // Update all sections
+                updateVitalSigns();
+                updateWeightTrends();
+                updateCardiovascularLabs();
+                updateKidneyFunction();
+                updateMedications();
+                updateClinicalNotes();
+                
+                // Display alerts
+                displayAlerts();
+                
+                // Update last updated time
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                alert('Error loading dashboard data. Please refresh the page.');
+            }
+        }
+
+        function updateHeader() {
+            const dob = new Date(patientData.date_of_birth);
+            const age = Math.floor((new Date() - dob) / (365.25 * 24 * 60 * 60 * 1000));
+            
+            document.getElementById('patientName').textContent = patientData.name;
+            document.getElementById('patientInfo').textContent = 
+                `${patientData.gender} · Age ${age} · DOB: ${formatDate(patientData.date_of_birth)} · ${patientData.city}, ${patientData.state}`;
+        }
+
+        function updateVitalSigns() {
+            // Get most recent vitals
+            const sortedVitals = [...vitalsData].sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at));
+            const latest = sortedVitals[0] || {};
+            
+            // Heart Rate
+            const hr = latest.heart_rate;
+            document.getElementById('heartRate').textContent = hr || '--';
+            if (hr) {
+                const hrStatus = document.getElementById('hrStatus');
+                if (hr < 60) {
+                    hrStatus.innerHTML = '<span class="bg-amber-900/50 text-amber-400 text-xs px-2 py-1 rounded-full">Bradycardia</span>';
+                    addAlert(`Bradycardia detected: Heart rate ${hr} bpm`, false);
+                } else if (hr > 100) {
+                    hrStatus.innerHTML = '<span class="bg-red-900/50 text-red-400 text-xs px-2 py-1 rounded-full">Tachycardia</span>';
+                    addAlert(`Tachycardia detected: Heart rate ${hr} bpm`, false);
+                } else {
+                    hrStatus.innerHTML = '<span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded-full">Normal</span>';
+                }
+            }
+            
+            // Blood Pressure
+            const sbp = latest.systolic_bp;
+            const dbp = latest.diastolic_bp;
+            document.getElementById('bloodPressure').textContent = sbp && dbp ? `${sbp}/${dbp}` : '--';
+            if (sbp && dbp) {
+                const bpStatus = document.getElementById('bpStatus');
+                if (sbp < 90 || dbp < 60) {
+                    bpStatus.innerHTML = '<span class="bg-red-900/50 text-red-400 text-xs px-2 py-1 rounded-full">Hypotension</span>';
+                    addAlert(`Hypotension detected: BP ${sbp}/${dbp} mmHg`, true);
+                } else if (sbp > 140 || dbp > 90) {
+                    bpStatus.innerHTML = '<span class="bg-amber-900/50 text-amber-400 text-xs px-2 py-1 rounded-full">Hypertension</span>';
+                    addAlert(`Hypertension detected: BP ${sbp}/${dbp} mmHg`, false);
+                } else {
+                    bpStatus.innerHTML = '<span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded-full">Normal</span>';
+                }
+            }
+            
+            // Respiratory Rate
+            const rr = latest.respiratory_rate;
+            document.getElementById('respRate').textContent = rr || '--';
+            if (rr) {
+                const rrStatus = document.getElementById('rrStatus');
+                if (rr < 12 || rr > 20) {
+                    rrStatus.innerHTML = '<span class="bg-amber-900/50 text-amber-400 text-xs px-2 py-1 rounded-full">Abnormal</span>';
+                    if (rr > 20) addAlert(`Tachypnea detected: Respiratory rate ${rr} breaths/min`, false);
+                } else {
+                    rrStatus.innerHTML = '<span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded-full">Normal</span>';
+                }
+            }
+            
+            // O2 Saturation
+            const o2 = latest.o2_saturation;
+            document.getElementById('o2Sat').textContent = o2 || '--';
+            if (o2) {
+                const o2Status = document.getElementById('o2Status');
+                if (o2 < 92) {
+                    o2Status.innerHTML = '<span class="bg-red-900/50 text-red-400 text-xs px-2 py-1 rounded-full">Hypoxia</span>';
+                    addAlert(`Hypoxia detected: O2 saturation ${o2}%`, true);
+                } else if (o2 < 95) {
+                    o2Status.innerHTML = '<span class="bg-amber-900/50 text-amber-400 text-xs px-2 py-1 rounded-full">Low</span>';
+                } else {
+                    o2Status.innerHTML = '<span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded-full">Normal</span>';
+                }
+            }
+            
+            // Temperature
+            const temp = latest.temperature;
+            document.getElementById('temperature').textContent = temp ? temp.toFixed(1) : '--';
+            if (temp) {
+                const tempStatus = document.getElementById('tempStatus');
+                if (temp < 97 || temp > 99.5) {
+                    tempStatus.innerHTML = '<span class="bg-amber-900/50 text-amber-400 text-xs px-2 py-1 rounded-full">Abnormal</span>';
+                } else {
+                    tempStatus.innerHTML = '<span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded-full">Normal</span>';
+                }
+            }
+            
+            // Current Weight
+            const weight = latest.weight;
+            document.getElementById('currentWeight').textContent = weight ? weight.toFixed(1) : '--';
+            
+            // Create vitals trend chart
+            createVitalsChart();
+        }
+
+        function createVitalsChart() {
+            const ctx = document.getElementById('vitalsChart');
+            
+            // Get last 30 days of vitals
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            const recentVitals = vitalsData
+                .filter(v => new Date(v.recorded_at) >= thirtyDaysAgo)
+                .sort((a, b) => new Date(a.recorded_at) - new Date(b.recorded_at));
+            
+            const dates = recentVitals.map(v => formatDate(v.recorded_at));
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Heart Rate (bpm)',
+                            data: recentVitals.map(v => v.heart_rate),
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Systolic BP (mmHg)',
+                            data: recentVitals.map(v => v.systolic_bp),
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'O2 Saturation (%)',
+                            data: recentVitals.map(v => v.o2_saturation),
+                            borderColor: '#F59E0B',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y2'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#9CA3AF' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { 
+                                color: '#9CA3AF',
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: { color: '#334155' }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            ticks: { color: '#3B82F6' },
+                            grid: { color: '#334155' },
+                            title: {
+                                display: true,
+                                text: 'Heart Rate',
+                                color: '#3B82F6'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            ticks: { color: '#10B981' },
+                            grid: { drawOnChartArea: false },
+                            title: {
+                                display: true,
+                                text: 'Blood Pressure',
+                                color: '#10B981'
+                            }
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false,
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateWeightTrends() {
+            // Sort weights by date
+            const sortedWeights = [...weightsData].sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at));
+            
+            if (sortedWeights.length === 0) {
+                document.getElementById('weight24h').innerHTML = '<span class="text-gray-500">No data</span>';
+                document.getElementById('weight7d').innerHTML = '<span class="text-gray-500">No data</span>';
+                document.getElementById('weight30d').innerHTML = '<span class="text-gray-500">No data</span>';
+                document.getElementById('weightAvg').innerHTML = '<span class="text-gray-500">No data</span>';
+                return;
+            }
+            
+            const currentWeight = sortedWeights[0].weight;
+            
+            // Calculate changes
+            function getWeightChange(daysAgo) {
+                const targetDate = new Date();
+                targetDate.setDate(targetDate.getDate() - daysAgo);
+                
+                const pastWeight = sortedWeights.find(w => new Date(w.recorded_at) <= targetDate);
+                if (!pastWeight) return null;
+                
+                const change = currentWeight - pastWeight.weight;
+                const changeLbs = change * 2.20462; // Convert kg to lbs
+                return changeLbs;
+            }
+            
+            const change24h = getWeightChange(1);
+            const change7d = getWeightChange(7);
+            const change30d = getWeightChange(30);
+            
+            function formatWeightChange(change, daysAgo) {
+                if (change === null) return '<span class="text-gray-500">Insufficient data</span>';
+                
+                const sign = change > 0 ? '+' : '';
+                let color = 'text-gray-400';
+                let alert = false;
+                
+                if (daysAgo === 1 && Math.abs(change) > 2) {
+                    color = 'text-red-400';
+                    alert = true;
+                    addAlert(`Rapid weight change: ${sign}${change.toFixed(1)} lbs in 24 hours`, true);
+                } else if (daysAgo === 7 && Math.abs(change) > 5) {
+                    color = 'text-amber-400';
+                    alert = true;
+                    addAlert(`Significant weight change: ${sign}${change.toFixed(1)} lbs in 7 days`, false);
+                } else if (change !== 0) {
+                    color = change > 0 ? 'text-amber-400' : 'text-blue-400';
+                }
+                
+                return `<span class="${color} font-bold">${sign}${change.toFixed(1)} lbs</span>`;
+            }
+            
+            document.getElementById('weight24h').innerHTML = formatWeightChange(change24h, 1);
+            document.getElementById('weight7d').innerHTML = formatWeightChange(change7d, 7);
+            document.getElementById('weight30d').innerHTML = formatWeightChange(change30d, 30);
+            
+            // Calculate average weight
+            const avgWeight = sortedWeights.reduce((sum, w) => sum + w.weight, 0) / sortedWeights.length;
+            document.getElementById('weightAvg').textContent = `${avgWeight.toFixed(1)} kg`;
+            
+            // Create weight chart
+            createWeightChart();
+        }
+
+        function createWeightChart() {
+            const ctx = document.getElementById('weightChart');
+            
+            // Get last 90 days of weights
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+            
+            const recentWeights = weightsData
+                .filter(w => new Date(w.recorded_at) >= ninetyDaysAgo)
+                .sort((a, b) => new Date(a.recorded_at) - new Date(b.recorded_at));
+            
+            const dates = recentWeights.map(w => formatDate(w.recorded_at));
+            const weights = recentWeights.map(w => w.weight);
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Weight (kg)',
+                        data: weights,
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#9CA3AF' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { 
+                                color: '#9CA3AF',
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: { color: '#334155' }
+                        },
+                        y: {
+                            ticks: { color: '#9CA3AF' },
+                            grid: { color: '#334155' },
+                            title: {
+                                display: true,
+                                text: 'Weight (kg)',
+                                color: '#9CA3AF'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCardiovascularLabs() {
+            // Get most recent labs
+            const sortedLabs = [...labsData].sort((a, b) => new Date(b.test_date) - new Date(a.test_date));
+            
+            // Troponin
+            const troponin = sortedLabs.find(l => l.test_name === 'troponin');
+            document.getElementById('troponin').textContent = troponin ? troponin.value.toFixed(3) : '--';
+            if (troponin && troponin.value > 0.04) {
+                addAlert(`Elevated troponin: ${troponin.value.toFixed(3)} ng/mL (possible cardiac injury)`, true);
+            }
+            
+            // Ejection Fraction
+            const ef = sortedLabs.find(l => l.test_name === 'ejection_fraction');
+            const efValue = ef ? ef.value : null;
+            document.getElementById('ejectionFraction').textContent = efValue ? `${efValue.toFixed(0)}` : '--';
+            if (efValue && efValue < 40) {
+                addAlert(`Reduced ejection fraction: ${efValue.toFixed(0)}% (systolic heart failure)`, true);
+            } else if (efValue && efValue >= 40 && efValue < 50) {
+                addAlert(`Borderline ejection fraction: ${efValue.toFixed(0)}%`, false);
+            }
+            
+            // Sodium
+            const sodium = sortedLabs.find(l => l.test_name === 'sodium' || l.test_name === 'sodium_blood');
+            document.getElementById('sodium').textContent = sodium ? sodium.value.toFixed(1) : '--';
+            if (sodium && (sodium.value < 135 || sodium.value > 145)) {
+                const status = sodium.value < 135 ? 'Hyponatremia' : 'Hypernatremia';
+                addAlert(`${status}: Sodium ${sodium.value.toFixed(1)} mEq/L`, false);
+            }
+            
+            // Potassium
+            const potassium = sortedLabs.find(l => l.test_name === 'potassium' || l.test_name === 'potassium_blood');
+            document.getElementById('potassium').textContent = potassium ? potassium.value.toFixed(1) : '--';
+            if (potassium && (potassium.value < 3.5 || potassium.value > 5.0)) {
+                const status = potassium.value < 3.5 ? 'Hypokalemia' : 'Hyperkalemia';
+                addAlert(`${status}: Potassium ${potassium.value.toFixed(1)} mEq/L`, potassium.value < 3.0 || potassium.value > 5.5);
+            }
+            
+            // Create labs chart
+            createLabsChart();
+        }
+
+        function createLabsChart() {
+            const ctx = document.getElementById('labsChart');
+            
+            // Get last 6 months of labs
+            const sixMonthsAgo = new Date();
+            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+            
+            const recentLabs = labsData
+                .filter(l => new Date(l.test_date) >= sixMonthsAgo)
+                .sort((a, b) => new Date(a.test_date) - new Date(b.test_date));
+            
+            // Group by test name
+            const troponinLabs = recentLabs.filter(l => l.test_name === 'troponin');
+            const sodiumLabs = recentLabs.filter(l => l.test_name === 'sodium' || l.test_name === 'sodium_blood');
+            const potassiumLabs = recentLabs.filter(l => l.test_name === 'potassium' || l.test_name === 'potassium_blood');
+            
+            // Get unique dates
+            const allDates = [...new Set(recentLabs.map(l => formatDate(l.test_date)))];
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: allDates,
+                    datasets: [
+                        {
+                            label: 'Troponin (ng/mL)',
+                            data: allDates.map(date => {
+                                const lab = troponinLabs.find(l => formatDate(l.test_date) === date);
+                                return lab ? lab.value : null;
+                            }),
+                            borderColor: '#EF4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Sodium (mEq/L)',
+                            data: allDates.map(date => {
+                                const lab = sodiumLabs.find(l => formatDate(l.test_date) === date);
+                                return lab ? lab.value : null;
+                            }),
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'Potassium (mEq/L)',
+                            data: allDates.map(date => {
+                                const lab = potassiumLabs.find(l => formatDate(l.test_date) === date);
+                                return lab ? lab.value : null;
+                            }),
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y2'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#9CA3AF' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { 
+                                color: '#9CA3AF',
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: { color: '#334155' }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            ticks: { color: '#EF4444' },
+                            grid: { color: '#334155' },
+                            title: {
+                                display: true,
+                                text: 'Troponin',
+                                color: '#EF4444'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            ticks: { color: '#3B82F6' },
+                            grid: { drawOnChartArea: false },
+                            title: {
+                                display: true,
+                                text: 'Sodium',
+                                color: '#3B82F6'
+                            }
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateKidneyFunction() {
+            // Get most recent labs
+            const sortedLabs = [...labsData].sort((a, b) => new Date(b.test_date) - new Date(a.test_date));
+            
+            // Creatinine
+            const creat = sortedLabs.find(l => l.test_name === 'creatinine' || l.test_name === 'creatinine_blood');
+            const creatValue = creat ? creat.value : null;
+            document.getElementById('creatinine').textContent = creatValue ? creatValue.toFixed(2) : '--';
+            
+            const creatStatus = document.getElementById('creatStatus');
+            if (creatValue) {
+                if (creatValue > 1.2) {
+                    creatStatus.innerHTML = '<span class="bg-amber-900/50 text-amber-400 text-xs px-2 py-1 rounded-full">Elevated</span>';
+                    if (creatValue > 2.0) {
+                        addAlert(`Significantly elevated creatinine: ${creatValue.toFixed(2)} mg/dL`, true);
+                    }
+                } else {
+                    creatStatus.innerHTML = '<span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded-full">Normal</span>';
+                }
+            }
+            
+            // BUN
+            const bun = sortedLabs.find(l => l.test_name === 'bun' || l.test_name === 'bun_blood');
+            const bunValue = bun ? bun.value : null;
+            document.getElementById('bun').textContent = bunValue ? bunValue.toFixed(1) : '--';
+            
+            const bunStatus = document.getElementById('bunStatus');
+            if (bunValue) {
+                if (bunValue > 20) {
+                    bunStatus.innerHTML = '<span class="bg-amber-900/50 text-amber-400 text-xs px-2 py-1 rounded-full">Elevated</span>';
+                } else {
+                    bunStatus.innerHTML = '<span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded-full">Normal</span>';
+                }
+            }
+            
+            // GFR
+            const gfr = sortedLabs.find(l => l.test_name === 'gfr');
+            const gfrValue = gfr ? gfr.value : null;
+            document.getElementById('gfr').textContent = gfrValue ? gfrValue.toFixed(0) : '--';
+            
+            const gfrStatus = document.getElementById('gfrStatus');
+            if (gfrValue) {
+                if (gfrValue < 30) {
+                    gfrStatus.innerHTML = '<span class="bg-red-900/50 text-red-400 text-xs px-2 py-1 rounded-full">Stage 4-5 CKD</span>';
+                    addAlert(`Severe kidney disease: GFR ${gfrValue.toFixed(0)} mL/min/1.73m²`, true);
+                } else if (gfrValue < 60) {
+                    gfrStatus.innerHTML = '<span class="bg-amber-900/50 text-amber-400 text-xs px-2 py-1 rounded-full">Stage 3 CKD</span>';
+                    addAlert(`Moderate kidney disease: GFR ${gfrValue.toFixed(0)} mL/min/1.73m²`, false);
+                } else {
+                    gfrStatus.innerHTML = '<span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded-full">Normal</span>';
+                }
+            }
+            
+            // Create kidney function chart
+            createKidneyChart();
+        }
+
+        function createKidneyChart() {
+            const ctx = document.getElementById('kidneyChart');
+            
+            // Get last 6 months of labs
+            const sixMonthsAgo = new Date();
+            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+            
+            const recentLabs = labsData
+                .filter(l => new Date(l.test_date) >= sixMonthsAgo)
+                .sort((a, b) => new Date(a.test_date) - new Date(b.test_date));
+            
+            // Group by test name
+            const creatLabs = recentLabs.filter(l => l.test_name === 'creatinine' || l.test_name === 'creatinine_blood');
+            const bunLabs = recentLabs.filter(l => l.test_name === 'bun' || l.test_name === 'bun_blood');
+            const gfrLabs = recentLabs.filter(l => l.test_name === 'gfr');
+            
+            // Get unique dates
+            const allDates = [...new Set(recentLabs.map(l => formatDate(l.test_date)))];
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: allDates,
+                    datasets: [
+                        {
+                            label: 'Creatinine (mg/dL)',
+                            data: allDates.map(date => {
+                                const lab = creatLabs.find(l => formatDate(l.test_date) === date);
+                                return lab ? lab.value : null;
+                            }),
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'BUN (mg/dL)',
+                            data: allDates.map(date => {
+                                const lab = bunLabs.find(l => formatDate(l.test_date) === date);
+                                return lab ? lab.value : null;
+                            }),
+                            borderColor: '#F59E0B',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'GFR (mL/min/1.73m²)',
+                            data: allDates.map(date => {
+                                const lab = gfrLabs.find(l => formatDate(l.test_date) === date);
+                                return lab ? lab.value : null;
+                            }),
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y2'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#9CA3AF' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { 
+                                color: '#9CA3AF',
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: { color: '#334155' }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            ticks: { color: '#3B82F6' },
+                            grid: { color: '#334155' },
+                            title: {
+                                display: true,
+                                text: 'Creatinine',
+                                color: '#3B82F6'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            ticks: { color: '#F59E0B' },
+                            grid: { drawOnChartArea: false },
+                            title: {
+                                display: true,
+                                text: 'BUN',
+                                color: '#F59E0B'
+                            }
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateMedications() {
+            // Get current medications (no stop date)
+            const currentMeds = medicationsData
+                .filter(m => !m.stop_date)
+                .sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
+            
+            // Heart failure medication classes
+            const hfMedClasses = {
+                'diuretic': ['furosemide', 'lasix', 'bumetanide', 'torsemide', 'hydrochlorothiazide', 'metolazone'],
+                'ace_inhibitor': ['lisinopril', 'enalapril', 'ramipril', 'captopril'],
+                'arb': ['losartan', 'valsartan', 'candesartan', 'olmesartan'],
+                'beta_blocker': ['carvedilol', 'metoprolol', 'bisoprolol'],
+                'aldosterone_antagonist': ['spironolactone', 'eplerenone'],
+                'arni': ['sacubitril', 'entresto']
+            };
+            
+            // Find HF medications
+            const hfMeds = currentMeds.filter(med =>
