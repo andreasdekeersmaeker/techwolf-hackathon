@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}JobBERT Retrieval Results{% endblock %}
+{% block content %}
+<h1>JobBERT Retrieval Results</h1>
+<p class="subtitle">How JobBERT interpreted the search — title channel vs. skill channel</p>
+
+{% set results = output.intermediate.retrieval_results %}
+
+<section class="meta-bar">
+    <div class="meta-item">
+        <span class="meta-label">Role Needs Searched</span>
+        <span class="meta-value">{{ results | length }}</span>
+    </div>
+    <div class="meta-item">
+        <span class="meta-label">Total Hits</span>
+        <span class="meta-value">{{ results | sum(attribute='hits') if false else results | map(attribute='hits') | map('length') | sum }}</span>
+    </div>
+</section>
+
+{% for rr in results %}
+<details class="retrieval-block">
+    <summary>
+        <strong>Role Need:</strong> <code>{{ rr.role_need_id }}</code>
+        — {{ rr.hits | length }} hits, {{ rr.scored | length }} survived re-ranking
+    </summary>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Enriched Title</th>
+                <th>Channel</th>
+                <th>Cosine Score</th>
+                <th>Query Used</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for hit in rr.hits | sort(attribute='cosine_score', reverse=True) %}
+            <tr class="channel-{{ hit.channel.value }}">
+                <td>{{ hit.enriched_job_title }}</td>
+                <td><span class="pill pill-channel-{{ hit.channel.value }}">{{ hit.channel.value }}</span></td>
+                <td>{{ "%.4f"|format(hit.cosine_score) }}</td>
+                <td><small>{{ hit.query_used[:80] }}</small></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</details>
+{% endfor %}
+{% endblock %}

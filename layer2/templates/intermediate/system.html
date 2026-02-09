@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}System Interaction Model{% endblock %}
+{% block content %}
+<h1>System Interaction Model</h1>
+<p class="subtitle">What the system demands of its users — extracted from Layer 1 website</p>
+
+{% set sysrep = output.intermediate.system_representation %}
+
+<!-- User-Facing Modules -->
+<section>
+    <h2>User-Facing Modules ({{ sysrep.modules | length }})</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Module</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>User Actions</th>
+                <th>Decisions Required</th>
+                <th>Domain Knowledge</th>
+                <th>Frequency</th>
+                <th>Sensitivity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in sysrep.modules %}
+            <tr>
+                <td><strong>{{ m.name }}</strong></td>
+                <td><span class="pill">{{ m.type.value }}</span></td>
+                <td>{{ m.description[:200] }}</td>
+                <td>
+                    <ul class="compact-list">
+                        {% for a in m.user_actions[:4] %}
+                        <li>{{ a }}</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td>
+                    <ul class="compact-list">
+                        {% for d in m.decisions_required[:3] %}
+                        <li>{{ d }}</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td>{{ m.domain_knowledge_needed | join(", ") }}</td>
+                <td>{{ m.frequency.value }}</td>
+                <td><span class="pill pill-{{ m.access_sensitivity.value }}">{{ m.access_sensitivity.value }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<!-- Organizational Obligations -->
+<section>
+    <h2>Organizational Obligations</h2>
+    {% set ob = sysrep.obligations %}
+    <div class="obligations-grid">
+        {% if ob.compliance_regimes %}
+        <div class="ob-card">
+            <h3>Compliance Regimes</h3>
+            <ul>{% for c in ob.compliance_regimes %}<li>{{ c }}</li>{% endfor %}</ul>
+        </div>
+        {% endif %}
+        {% if ob.data_governance_needs %}
+        <div class="ob-card">
+            <h3>Data Governance</h3>
+            <ul>{% for d in ob.data_governance_needs %}<li>{{ d }}</li>{% endfor %}</ul>
+        </div>
+        {% endif %}
+        {% if ob.training_needs %}
+        <div class="ob-card">
+            <h3>Training Needs</h3>
+            <ul>{% for t in ob.training_needs %}<li>{{ t }}</li>{% endfor %}</ul>
+        </div>
+        {% endif %}
+        {% if ob.change_management_needs %}
+        <div class="ob-card">
+            <h3>Change Management</h3>
+            <ul>{% for c in ob.change_management_needs %}<li>{{ c }}</li>{% endfor %}</ul>
+        </div>
+        {% endif %}
+        {% if ob.oversight_needs %}
+        <div class="ob-card">
+            <h3>Oversight Needs</h3>
+            <ul>{% for o in ob.oversight_needs %}<li>{{ o }}</li>{% endfor %}</ul>
+        </div>
+        {% endif %}
+        {% if ob.vendor_liaison_needs %}
+        <div class="ob-card">
+            <h3>Vendor Liaison</h3>
+            <ul>{% for v in ob.vendor_liaison_needs %}<li>{{ v }}</li>{% endfor %}</ul>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Workflow Map -->
+<section>
+    <h2>Workflow Interaction Map</h2>
+    {% if sysrep.workflow_map.edges %}
+    <table class="data-table">
+        <thead>
+            <tr><th>From</th><th></th><th>To</th><th>Handoff</th></tr>
+        </thead>
+        <tbody>
+            {% for edge in sysrep.workflow_map.edges %}
+            <tr>
+                <td>{{ edge.from_module }}</td>
+                <td class="arrow-cell">&rarr;</td>
+                <td>{{ edge.to_module }}</td>
+                <td>{{ edge.handoff_description }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty">No workflow connections identified.</p>
+    {% endif %}
+</section>
+
+<!-- Source Chunks -->
+<section>
+    <h2>Source Content Chunks ({{ output.intermediate.content_chunks | length }})</h2>
+    <details>
+        <summary>Show all extracted content chunks</summary>
+        <table class="data-table">
+            <thead>
+                <tr><th>ID</th><th>Category</th><th>Headings</th><th>Source</th><th>Text Preview</th></tr>
+            </thead>
+            <tbody>
+                {% for chunk in output.intermediate.content_chunks %}
+                <tr>
+                    <td><code>{{ chunk.id }}</code></td>
+                    <td><span class="pill">{{ chunk.category.value }}</span></td>
+                    <td>{{ chunk.heading_path | join(" > ") }}</td>
+                    <td><a href="{{ chunk.source_url }}">{{ chunk.source_url | truncate(40) }}</a></td>
+                    <td>{{ chunk.text[:150] }}...</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+</section>
+{% endblock %}

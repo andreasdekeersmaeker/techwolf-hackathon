@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Role Recommendations</h1>
+
+{% set roster = output.roster %}
+{% set meta = roster.metadata %}
+
+<section class="meta-bar">
+    <div class="meta-item">
+        <span class="meta-label">System</span>
+        <span class="meta-value">{{ meta.system_name }}</span>
+    </div>
+    <div class="meta-item">
+        <span class="meta-label">Total Roles</span>
+        <span class="meta-value">{{ meta.total_roles }}</span>
+    </div>
+    <div class="meta-item">
+        <span class="meta-label">Coverage</span>
+        <span class="meta-value {% if meta.coverage_pct < 80 %}warn{% endif %}">{{ "%.1f"|format(meta.coverage_pct) }}%</span>
+    </div>
+    <div class="meta-item">
+        <span class="meta-label">Generated</span>
+        <span class="meta-value">{{ meta.generated_at[:19] }}</span>
+    </div>
+</section>
+
+<!-- Tabs -->
+<div class="tab-bar">
+    <button class="tab active" data-tab="by-function">By Function</button>
+    <button class="tab" data-tab="by-interaction">By Interaction Pattern</button>
+    <button class="tab" data-tab="by-transformation">By Transformation</button>
+</div>
+
+<!-- By Function -->
+<section class="tab-content active" id="by-function">
+    {% for category, roles in roster.by_function.items() %}
+    <h2 class="group-header">{{ category | replace("_", " ") | title }}</h2>
+    <div class="role-grid">
+        {% for role in roles %}
+        {% include "partials/role_card.html" %}
+        {% endfor %}
+    </div>
+    {% endfor %}
+    {% if not roster.by_function %}
+    <p class="empty">No roles grouped by function.</p>
+    {% endif %}
+</section>
+
+<!-- By Interaction Pattern -->
+<section class="tab-content" id="by-interaction">
+    {% for pattern, roles in roster.by_interaction_pattern.items() %}
+    <h2 class="group-header">{{ pattern | replace("_", " ") | title }}</h2>
+    <div class="role-grid">
+        {% for role in roles %}
+        {% include "partials/role_card.html" %}
+        {% endfor %}
+    </div>
+    {% endfor %}
+</section>
+
+<!-- By Transformation -->
+<section class="tab-content" id="by-transformation">
+    {% for ttype, roles in roster.by_transformation.items() %}
+    <h2 class="group-header">
+        {% if ttype == "existing_unchanged" %}Existing (Unchanged)
+        {% elif ttype == "existing_augmented" %}Existing (Augmented by System)
+        {% elif ttype == "existing_consolidated" %}Consolidated Roles
+        {% elif ttype == "newly_created" %}Newly Created Roles
+        {% else %}{{ ttype | replace("_", " ") | title }}
+        {% endif %}
+    </h2>
+    <div class="role-grid">
+        {% for role in roles %}
+        {% include "partials/role_card.html" %}
+        {% endfor %}
+    </div>
+    {% endfor %}
+</section>
+
+<!-- Gaps & Caveats -->
+{% if meta.uncovered_needs %}
+<section class="caveats">
+    <h2>Gaps &amp; Caveats</h2>
+    <h3>Uncovered Needs</h3>
+    <ul>
+        {% for need in meta.uncovered_needs %}
+        <li>{{ need }}</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+
+<script>
+document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+});
+</script>
+{% endblock %}

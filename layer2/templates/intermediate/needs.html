@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Role Needs Analysis{% endblock %}
+{% block content %}
+<h1>Role Needs Analysis</h1>
+<p class="subtitle">Why each human role is needed and how it relates to legacy roles</p>
+
+{% set needs = output.intermediate.role_needs %}
+
+<section class="meta-bar">
+    <div class="meta-item">
+        <span class="meta-label">Total Role Needs</span>
+        <span class="meta-value">{{ needs | length }}</span>
+    </div>
+</section>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>Interaction</th>
+            <th>Seniority</th>
+            <th>Domain Expertise</th>
+            <th>Derived Titles</th>
+            <th>Source Module</th>
+            <th>Transformation</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for need in needs %}
+        <tr>
+            <td><code>{{ need.id }}</code></td>
+            <td>{{ need.description[:200] }}</td>
+            <td><span class="pill">{{ need.category.value | replace("_", " ") }}</span></td>
+            <td><span class="pill">{{ need.interaction_pattern.value | replace("_", " ") }}</span></td>
+            <td><span class="pill pill-seniority-{{ need.seniority_signal.value }}">{{ need.seniority_signal.value | replace("_", " ") }}</span></td>
+            <td>{{ need.domain_expertise | join(", ") }}</td>
+            <td>
+                <ul class="compact-list">
+                    {% for t in need.derived_job_titles %}
+                    <li>{{ t }}</li>
+                    {% endfor %}
+                </ul>
+            </td>
+            <td>{{ need.source_module or "Cross-cutting" }}</td>
+            <td>
+                <span class="badge badge-{{ need.transformation.transformation_type.value }}">
+                    {{ need.transformation.transformation_type.value | replace("_", " ") }}
+                </span>
+                {% if need.transformation.rationale %}
+                <br><small>{{ need.transformation.rationale[:100] }}</small>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

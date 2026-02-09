@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Role Recommendations{% endblock %} — TechWolf</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="topnav">
+        <a href="/jobrecommendations" class="nav-brand">Role Recommendations</a>
+        <div class="nav-links">
+            <a href="/jobrecommendations">Dashboard</a>
+            <span class="nav-sep">|</span>
+            <span class="nav-group-label">Intermediate:</span>
+            <a href="/jobrecommendations/intermediate/system">System Model</a>
+            <a href="/jobrecommendations/intermediate/needs">Role Needs</a>
+            <a href="/jobrecommendations/intermediate/retrieval">Retrieval</a>
+            <a href="/jobrecommendations/intermediate/scoring">Scoring</a>
+            <a href="/jobrecommendations/intermediate/clustering">Clustering</a>
+        </div>
+    </nav>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="footer">
+        <p>Layer 2 — Agentic Role Recommendation System &middot; Powered by <span class="brand-tw">TechWolf</span></p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}LLM Scoring Breakdown{% endblock %}
+{% block content %}
+<h1>LLM Scoring Breakdown</h1>
+<p class="subtitle">Why each vacancy was ranked where it is — task, domain, and seniority scores</p>
+
+{% set scores = output.intermediate.scoring_breakdowns %}
+
+<section class="meta-bar">
+    <div class="meta-item">
+        <span class="meta-label">Scored Pairs</span>
+        <span class="meta-value">{{ scores | length }}</span>
+    </div>
+    <div class="meta-item">
+        <span class="meta-label">Threshold</span>
+        <span class="meta-value">&ge; 3.0 composite</span>
+    </div>
+</section>
+
+<table class="data-table sortable">
+    <thead>
+        <tr>
+            <th>Enriched Title</th>
+            <th>Role Need ID</th>
+            <th>Task (0.40)</th>
+            <th>Domain (0.40)</th>
+            <th>Seniority (0.20)</th>
+            <th>Composite</th>
+            <th>Rationale</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sd in scores | sort(attribute='composite_score', reverse=True) %}
+        <tr>
+            <td><strong>{{ sd.enriched_job_title }}</strong></td>
+            <td><code>{{ sd.role_need_id }}</code></td>
+            <td class="score-cell">{{ "%.1f"|format(sd.task_score) }}</td>
+            <td class="score-cell">{{ "%.1f"|format(sd.domain_score) }}</td>
+            <td class="score-cell">{{ "%.1f"|format(sd.seniority_score) }}</td>
+            <td class="score-cell score-composite"><strong>{{ "%.2f"|format(sd.composite_score) }}</strong></td>
+            <td><small>{{ sd.rationale }}</small></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

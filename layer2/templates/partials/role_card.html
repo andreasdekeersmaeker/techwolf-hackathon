@@ -1,0 +1,35 @@
+<div class="role-card">
+    <div class="role-header">
+        <h3 class="role-title">{{ role.canonical_title }}</h3>
+        <span class="badge badge-{{ role.transformation.transformation_type.value }}">
+            {{ role.transformation.transformation_type.value | replace("_", " ") | title }}
+        </span>
+    </div>
+    <div class="role-meta">
+        <span class="pill">{{ role.seniority.value | replace("_", " ") | title }}</span>
+        <span class="pill">{{ role.category.value | replace("_", " ") | title }}</span>
+        <span class="pill">{{ role.interaction_pattern.value | replace("_", " ") | title }}</span>
+        <span class="confidence" title="Match confidence">{{ "%.2f"|format(role.confidence) }}</span>
+    </div>
+    <p class="role-justification">{{ role.justification }}</p>
+    {% if role.alternative_titles %}
+    <details>
+        <summary>Alternative titles ({{ role.alternative_titles | length }})</summary>
+        <ul class="alt-titles">
+            {% for t in role.alternative_titles %}
+            <li>{{ t }}</li>
+            {% endfor %}
+        </ul>
+    </details>
+    {% endif %}
+    {% if role.transformation.rationale %}
+    <details>
+        <summary>Transformation rationale</summary>
+        <p class="rationale">{{ role.transformation.rationale }}</p>
+    </details>
+    {% endif %}
+    <div class="role-footer">
+        <span class="channel-tag">Channel: {{ role.retrieval_channel.value }}</span>
+        <span class="need-count">Covers {{ role.mapped_role_needs | length }} need(s)</span>
+    </div>
+</div>

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Role Clustering{% endblock %}
+{% block content %}
+<h1>Role Clustering</h1>
+<p class="subtitle">How individual vacancies were grouped into recommended roles via JobBERT embeddings</p>
+
+{% set clusters = output.intermediate.clustering_output %}
+
+<section class="meta-bar">
+    <div class="meta-item">
+        <span class="meta-label">Clusters</span>
+        <span class="meta-value">{{ clusters | length }}</span>
+    </div>
+    <div class="meta-item">
+        <span class="meta-label">Method</span>
+        <span class="meta-value">Agglomerative (cosine, avg linkage)</span>
+    </div>
+    <div class="meta-item">
+        <span class="meta-label">Distance Threshold</span>
+        <span class="meta-value">0.35</span>
+    </div>
+</section>
+
+{% for cluster in clusters %}
+<div class="cluster-card">
+    <h3>
+        Cluster {{ cluster.cluster_id }}:
+        <span class="canonical">{{ cluster.canonical_title }}</span>
+    </h3>
+    <div class="cluster-meta">
+        <span>Centroid distance: {{ "%.4f"|format(cluster.centroid_distance) }}</span>
+        <span>Members: {{ cluster.member_titles | length }}</span>
+    </div>
+    <div class="cluster-members">
+        <h4>Member Titles</h4>
+        <ul>
+            {% for title in cluster.member_titles %}
+            <li{% if title == cluster.canonical_title %} class="canonical-member"{% endif %}>
+                {{ title }}{% if title == cluster.canonical_title %} (canonical){% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endfor %}
+
+{% if not clusters %}
+<p class="empty">No clustering data available.</p>
+{% endif %}
+{% endblock %}
